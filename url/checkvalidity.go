@@ -1,14 +1,14 @@
-package urlhandler
+package url
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 )
 
-func CheckUrlValidity(url string) (bool, error) {
+func CheckValidity(urlString string) (bool, error) {
+	// in courtesy of
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", urlString, nil)
 	if err != nil {
 		return false, errors.New("could not create a new HTTP request")
 	}
@@ -20,7 +20,6 @@ func CheckUrlValidity(url string) (bool, error) {
 		return false, errors.New("could not send the HTTP request to Github")
 	}
 	defer resp.Body.Close()
-	fmt.Println("[URL VALIDITY]: FETCHING OK STATUS: " + resp.Status)
 	if resp.StatusCode == 200 && resp.Header.Get("Server") == "GitHub.com" {
 		return true, nil
 	}
