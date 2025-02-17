@@ -2,28 +2,50 @@ package main
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"linty/input"
-	"linty/local"
+	"linty/repository"
+	"linty/summary"
+	"linty/url"
 	"log"
 	"runtime"
+
+	"github.com/fatih/color"
 )
 
-var version = "0.1.1"
+var version = "0.1.2"
 
 func main() {
 	os := runtime.GOOS
-	color.Blue("Gitlinty " + version + " (https://github.com/0xf6i/gitlinty/)")
-	fmt.Println(os)
+	color.Blue("Gitlinty for " + os + " | " + version + " (https://github.com/0xf6i/gitlinty/)")
 
-	filePath, err := input.UserInput("Please give me text file path")
+	userUrlInput, err := input.UserInput("PATH")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileContainsTest, err := local.CheckForTest(filePath)
+	fmt.Println("url: " + userUrlInput)
+
+	handledUrl, err := url.Handler(userUrlInput)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(fileContainsTest)
+	fmt.Println(handledUrl.Author)
+	fmt.Println(handledUrl.Repository)
+
+	clonedRepository, err := repository.Clone(handledUrl.Author, handledUrl.Repository)
+	if err != nil {
+		fmt.Println("err")
+		log.Fatal(err)
+
+	}
+	fmt.Println(clonedRepository)
+
+	contributors, err := repository.CheckContributors(clonedRepository)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	noOfCommits := summary.SummarizeCommits(contributors)
+	fmt.Println(noOfCommits)
 
 }

@@ -19,3 +19,10 @@
 
 # Go workspace file
 go.work
+.idea/.gitignore
+.idea/go_pa1456.iml
+.idea/modules.xml
+.gitignore
+.idea/vcs.xml
+.gitignore
+.DS_Store
