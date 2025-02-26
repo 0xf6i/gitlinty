@@ -6,7 +6,7 @@ Gitlinty is a GitHub repository linter developed as a school project at Blekinge
 ## Features
 
 - **License Checking:** Validates the presence and correctness of licenses in the repository.
-- **README Validation:** Ensures that the README file is properly formatted and includes essential information.
+- **README Validation:** Ensures that the README file is properly formatted and exists.
 - **Workflow Analysis:** Analyzes workflow files to confirm they are configured correctly and adhere to best practices.
 - **Health Report:** Provides a summary of the repository’s health, highlighting areas that need improvement.
 
