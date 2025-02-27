@@ -11,7 +11,7 @@ func CheckForTest(filePath string) (bool, error) {
 		return false, err
 	}
 
-	fileString := string(fileContent)
+	fileString := string(filePath)
 	if strings.Contains(fileString, "test") {
 		return true, nil
 	}

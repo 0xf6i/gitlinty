@@ -8,7 +8,7 @@ import (
 )
 
 // CheckRepository takes a path and checks if the given path is a directory and if this said directory contains a .git folder inside.
-func CheckRepository(path string) (bool, bool, error) {
+func CheckRepository(path string) (string, bool, bool, error) {
 	dirStat, err := os.Stat(path)
 	if err != nil {
 		log.Fatal(err)
@@ -26,11 +26,11 @@ func CheckRepository(path string) (bool, bool, error) {
 
 		if gitStat.IsDir() {
 			fmt.Println("[checkrepository.go]: .git directory exists.")
-			return true, true, nil
+			return gitPath, true, true, nil
 		}
-		return true, false, errors.New("[checkrepository.go]: .git does not exist")
+		return "", true, false, errors.New("[checkrepository.go]: .git does not exist")
 
 	}
-	return false, false, errors.New("[checkrepository.go]: neither dir or git exists")
+	return "", false, false, errors.New("[checkrepository.go]: neither dir or git exists")
 
 }
