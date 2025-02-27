@@ -1,9 +1,7 @@
-package local
+package repository
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"os"
 )
 
@@ -11,26 +9,21 @@ import (
 func CheckRepository(path string) (string, bool, bool, error) {
 	dirStat, err := os.Stat(path)
 	if err != nil {
-		log.Fatal(err)
+		return "", false, false, errors.New("Failed to access path:" + path)
 	}
 	if dirStat.IsDir() {
-		fmt.Println("[checkrepository.go]: directory exists.")
 		gitPath := path + "/.git"
 
 		gitStat, err := os.Stat(gitPath)
 		if err != nil {
-			log.Fatal(err)
+			if os.IsNotExist(err) {
+				return "", true, false, errors.New(".git does not exist in given directory: " + gitPath)
+			}
+			return "", true, false, errors.New("Failed to access .git directory: " + gitPath)
 		}
-
-		fmt.Println("[checkrepository.go]: gitPath: " + gitPath)
-
 		if gitStat.IsDir() {
-			fmt.Println("[checkrepository.go]: .git directory exists.")
 			return gitPath, true, true, nil
 		}
-		return "", true, false, errors.New("[checkrepository.go]: .git does not exist")
-
 	}
-	return "", false, false, errors.New("[checkrepository.go]: neither dir or git exists")
-
+	return "", true, false, errors.New(".git exists but is not in a directory")
 }
