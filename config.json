@@ -1,4 +1,11 @@
 {
-  "directory_path": "/tmp/gitlinty",
-  "firstRun": true
+  "directory_path": "/Users/0x/tmp/gitlinty",
+  "firstRun": false,
+  "filesToSkip": [],
+  "failureAllowances": {
+    "gitignore": false,
+    "license": false,
+    "readme": false,
+    "workflow": false
+  }
 }
