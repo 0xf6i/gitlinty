@@ -6,31 +6,27 @@ import (
 	"linty/src/files"
 	"linty/src/input"
 	"linty/src/repository"
+	"linty/src/summary"
 	"linty/src/url"
 	"linty/src/utils"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/fatih/color"
 )
 
-//if default path -> ask for input
-//if custom path -> check path exists -> create directory -> save to config
-
-// ask for input -> url -> validate -> handle -> clone -> run checks
-// ask for input -> path -> validate -> run checks
-
-// return summary object -> print summary
-
 func main() {
+
 	opersys := runtime.GOOS
 	currentDir, err := os.Getwd()
 	if err != nil {
 		log.Fatal("failed to read current directory")
 	}
-	// TESTING
+
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal("failed to get user home directory")
@@ -38,48 +34,41 @@ func main() {
 
 	color.Blue("Gitlinty for " + opersys + " (DEMO) |  (https://github.com/0xf6i/gitlinty/)")
 
-	// load config
 	loadedConfig, err := config.LoadConfig(filepath.Join(currentDir, "config.json"))
 	if err != nil {
 		log.Fatal("failed to read current config file")
 	}
 	fmt.Println("Config file has been loaded.")
 
-	//clean clone directory path
 	cloneDirectory := filepath.Clean(loadedConfig.DirectoryPath)
 
-	// check if given directory in config exists
 	cloneDirectoryExists := utils.FolderExists(cloneDirectory)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// if the directory doesnt exist, create it
+
 	if !cloneDirectoryExists {
 		os.Mkdir(filepath.Join(cloneDirectory, "gitlinty"), os.ModePerm)
 	}
 
-	//HARDCODED TESTING VALUE, REMOVE LATER
-	// ß
-
-	// run the first time sequence
 	if loadedConfig.FirstRun {
-		// check if user wants custom path of default one
+
 		useDefaultPath, err := input.UserChoice("Would you like to use the default path?")
 		if err != nil {
 			log.Fatal(err)
 		}
-		// user wants custom path
+
 		if !useDefaultPath {
 			userSelectedPath, err := input.UserInput("Please specify the path to where you want to stored cloned repositories")
 			if err != nil {
 				log.Fatal(err)
 			}
-			// check if the given path and directory exists
+
 			userSelectedPathExists := utils.FolderExists(userSelectedPath)
 			if err != nil {
 				log.Fatal(err)
 			}
-			// path does not exist, ask if they want to create it, otherwise exit
+
 			if !userSelectedPathExists {
 				userCreateNewDirectory, err := input.UserChoice("Directory does not exist, do you want to create a new directory?")
 				if err != nil {
@@ -103,7 +92,7 @@ func main() {
 			config.WriteConfig(loadedConfig, filepath.Join(currentDir, "config.json"))
 		}
 	}
-	//reload config file
+
 	loadedConfig, err = config.LoadConfig(filepath.Join(currentDir, "config.json"))
 	if err != nil {
 		log.Fatal()
@@ -137,40 +126,92 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(clonedRepoPath)
-			fmt.Println(directoryName)
 
-			licenseFiles, err := files.CheckFileContent(clonedRepoPath, "license")
+			fmt.Println("CLONED REPO PATH:", clonedRepoPath)
+			fmt.Println("DIRECTORY NAME", directoryName)
+
+			ignoredPaths, ignoredPatterns, err := summary.ReadGitignore(clonedRepoPath)
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("Warning: couldn't read .gitignore: %v", err)
+				ignoredPaths = []string{}
+				ignoredPatterns = []string{}
 			}
-			gitIgnoreFiles, err := files.CheckFileContent(clonedRepoPath, "gitignore")
-			if err != nil {
-				log.Fatal(err)
-			}
-			readmeFiles, err := files.CheckFileContent(clonedRepoPath, "readme")
-			if err != nil {
-				log.Fatal(err)
-			}
-			workFlowFiles, err := files.CheckFileContent(clonedRepoPath, "workflow")
+
+			allFiles, err := files.FindProjectFiles(clonedRepoPath, ignoredPaths, ignoredPatterns)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			fmt.Println(licenseFiles, gitIgnoreFiles, readmeFiles, workFlowFiles)
+			repoObject := summary.Repository{
+				Author: handledUrl.Author,
+				Name:   handledUrl.Repository,
+			}
+
+			categories := []string{"license", "gitignore", "readme", "workflow", "tests"}
+			//fmt.Println("CLoned repo path:", clonedRepoPath)
+			results := summary.GenerateSummary(repoObject, allFiles, categories, clonedRepoPath, loadedConfig)
+
+			summary.PrintSummary(results)
+
+			cmd := exec.Command("gitleaks", "git", "-v", clonedRepoPath)
+			output, err := cmd.CombinedOutput()
+
+			if err != nil {
+				if strings.Contains(string(output), "leaks found") {
+					fmt.Println("\n⚠️ Gitleaks found potential secrets in the repository:")
+					fmt.Println(string(output))
+					os.Exit(1)
+				}
+				log.Fatal(err)
+			}
+
+			fmt.Println("\nGitleaks scan completed successfully - no leaks found")
+			os.Exit(0)
+
 		}
 
 	case false:
-		fmt.Println("PATH")
+		ignoredPaths, ignoredPatterns, err := summary.ReadGitignore(userClonePath)
+		if err != nil {
+			log.Printf("Warning: couldn't read .gitignore: %v", err)
+			ignoredPaths = []string{}
+			ignoredPatterns = []string{}
+		}
+
+		allFiles, err := files.FindProjectFiles(userClonePath, ignoredPaths, ignoredPatterns)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		author, repo, err := repository.GetRepoInfo(userClonePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		repoObject := summary.Repository{
+			Author: author,
+			Name:   repo,
+		}
+		categories := []string{"license", "gitignore", "readme", "workflow", "tests"}
+		results := summary.GenerateSummary(repoObject, allFiles, categories, userClonePath, loadedConfig)
+
+		summary.PrintSummary(results)
+		cmd := exec.Command("gitleaks", "git", "-v", userClonePath)
+		output, err := cmd.CombinedOutput()
+
+		if err != nil {
+			if strings.Contains(string(output), "leaks found") {
+				fmt.Println("\n⚠️ Gitleaks found potential secrets in the repository:")
+				fmt.Println(string(output))
+				os.Exit(0)
+			}
+			log.Fatal(err)
+		}
+
+		fmt.Println("\nGitleaks scan completed successfully - no leaks found")
+		fmt.Println("Exiting with status code: 0")
+		os.Exit(0)
+
 	}
-
-	// loadedConfig.DirectoryPath = filepath.Join(currentDir, "folder_to_clone_to")
-
-	// newConfig, err := config.WriteConfig(loadedConfig, filepath.Join(currentDir, "config.json"))
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println(newConfig)
 
 }

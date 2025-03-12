@@ -14,6 +14,7 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+wewotest.go
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
@@ -25,5 +26,7 @@ go.work
 .idea/vcs.xml
 .gitignore
 .DS_Store
-/.idea/workspace.xml
-/.idea/gitlinty.iml
+.idea/workspace.xml
+.idea/gitlinty.iml
+
+/src/.gitignore

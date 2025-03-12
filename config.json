@@ -1,11 +1,12 @@
 {
   "directory_path": "/Users/0x/tmp/gitlinty",
   "firstRun": false,
-  "filesToSkip": [],
+  "filesToSkip": ["/Users/0x/Desktop/0xf6i-gitlinty/src/LICENSE"],
   "failureAllowances": {
     "gitignore": false,
-    "license": false,
+    "license": true,
     "readme": false,
-    "workflow": false
+    "workflow": false,
+    "tests": false
   }
 }

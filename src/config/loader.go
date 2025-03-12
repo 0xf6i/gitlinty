@@ -6,6 +6,14 @@ import (
 	"os"
 )
 
+type FailureAllowances struct {
+	Gitignore bool `json:"gitignore"`
+	License   bool `json:"license"`
+	Readme    bool `json:"readme"`
+	Workflow  bool `json:"workflow"`
+	Tests     bool `json:"tests"`
+}
+
 type Config struct {
 	DirectoryPath     string            `json:"directory_path"`
 	FirstRun          bool              `json:"firstRun"`

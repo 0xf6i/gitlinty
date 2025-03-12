@@ -1,21 +1,12 @@
 package summary
 
-import (
-	"fmt"
-	"linty/src/repository"
-	"sort"
-)
-
-func SummarizeCommits(contributors *[]repository.Contributor) int {
-	sort.SliceStable(*contributors, func(i, j int) bool {
-		return (*contributors)[i].Commits > (*contributors)[j].Commits
-	})
-
+func SummarizeCommits(contributors []Contributor) int {
 	totalCommits := 0
 
-	for _, contributor := range *contributors {
+	// Iterate over contributors and display their details
+	for _, contributor := range contributors {
 		totalCommits += contributor.Commits
-		fmt.Printf("Name: %s, Email: %s, Commits: %d\n", contributor.Name, contributor.Email, contributor.Commits)
 	}
+
 	return totalCommits
 }
