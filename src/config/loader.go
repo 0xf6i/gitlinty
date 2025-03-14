@@ -23,7 +23,6 @@ type Config struct {
 
 // https://yetanotherprogrammingblog.medium.com/using-json-config-in-go-67e824ca46cc
 func LoadConfig(configPath string) (*Config, error) {
-
 	config := Config{}
 
 	configFile, err := os.Open(configPath)

@@ -69,6 +69,8 @@ func PrintContributors(result *SummaryResult) {
 	if len(result.Summary.Contributions.Contributors) > 0 {
 		fmt.Println("\nContributors")
 
+		fmt.Println("Total number of commits:", result.Summary.Contributions.TotalCommits)
+
 		if len(result.Summary.Contributions.Contributors) > 25 {
 			showContributors, err := input.UserChoice("There are more than 25 contributors, do you want to show all?")
 			if err != nil {

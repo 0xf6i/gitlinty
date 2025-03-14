@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 )
 
-// CheckRepository takes a path and checks if the given path is a directory and if this said directory contains a .git folder inside.
 func CheckRepository(path string) (string, error) {
 	path = filepath.Clean(path)
 	dirStat, err := os.Stat(path)
